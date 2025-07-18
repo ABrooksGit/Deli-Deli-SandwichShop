@@ -3,15 +3,11 @@ package com.pluralsight.userinterface;
 
 import com.pluralsight.console.ColorCodes;
 import com.pluralsight.console.Console;
-import com.pluralsight.order.Chip;
-import com.pluralsight.order.Drink;
-import com.pluralsight.order.Order;
+import com.pluralsight.order.*;
 import com.pluralsight.filemanager.FileManager;
-import com.pluralsight.order.MenuItem;
 import com.pluralsight.sandwich.BLT;
 import com.pluralsight.sandwich.Bread;
 import com.pluralsight.sandwich.PhillyCheeseSteak;
-import com.pluralsight.order.Sandwich;
 import com.pluralsight.toppings.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -27,6 +23,7 @@ public class UserInterface {
 
     //Creates an Order
     private Order order = new Order(LocalDateTime.now());
+
 
 
     //initial starting point
@@ -80,7 +77,8 @@ public class UserInterface {
                  2. Order from a Menu
                  3. Add Drink
                  4. Add Chips
-                 5. Checkout
+                 5. Apply Coupon
+                 6. Checkout
                  0. Cancel the Order\s
                 Enter here:\s""";
 
@@ -103,6 +101,9 @@ public class UserInterface {
                     addChipsToOrder();
                     break;
                 case 5:
+                    applyCoupon();
+                    break;
+                case 6:
                     checkOut();
                     return;
                 default:
@@ -111,7 +112,7 @@ public class UserInterface {
                     if (confirmation == 1) {
                         System.out.println("\n" + ColorCodes.BOLD + "Order Canceled" + ColorCodes.RESET + ColorCodes.FLORAL_WHITE + "\n");
                         order.clearMenuItem();
-                       return;
+                        return;
                     } else if (confirmation > 1 | confirmation < 0) {
                         System.out.println("not a valid number");
                     }
@@ -167,17 +168,17 @@ public class UserInterface {
             }
             int chosenBread = console.promptForInt("Which bread do you want?(0 to exit out): ");
 
-                if (chosenBread == 0) {
-                    return;
-                } else if (chosenBread <= Bread.getBreadTypes().size()) {
-                    Bread selectedBread = Bread.getBreadTypes().get(chosenBread - 1);
-                    sandwich.setBreadType(selectedBread);
-                    System.out.println("\n " + ColorCodes.BOLD + selectedBread + " Bread added \n" + ColorCodes.RESET + ColorCodes.FLORAL_WHITE);
-                    break;
-                } else {
-                    System.out.println(ColorCodes.RED + "Invalid number...please choose a number between 1 and " +
-                            Bread.getBreadTypes().size() + ColorCodes.RESET + ColorCodes.FLORAL_WHITE);
-                }
+            if (chosenBread == 0) {
+                return;
+            } else if (chosenBread <= Bread.getBreadTypes().size()) {
+                Bread selectedBread = Bread.getBreadTypes().get(chosenBread - 1);
+                sandwich.setBreadType(selectedBread);
+                System.out.println("\n " + ColorCodes.BOLD + selectedBread + " Bread added \n" + ColorCodes.RESET + ColorCodes.FLORAL_WHITE);
+                break;
+            } else {
+                System.out.println(ColorCodes.RED + "Invalid number...please choose a number between 1 and " +
+                        Bread.getBreadTypes().size() + ColorCodes.RESET + ColorCodes.FLORAL_WHITE);
+            }
         }
     }
 
@@ -406,7 +407,7 @@ public class UserInterface {
 
     //Signature Sandwiches
     private void signatureSandwiches() {
-       //Signature Sandwiches for the user to choose from or customize.
+        //Signature Sandwiches for the user to choose from or customize.
         String defaults = """
                  Here are the default orders:
                  1. BLT: 8" White Bread, Bacon, Cheddar, Lettuce, Tomato, Ranch, Toasted.
@@ -484,11 +485,11 @@ public class UserInterface {
 
                 PhillyCheeseSteak pcs = new PhillyCheeseSteak();
                 if (createPcs == 1) {
-                        changeBreadForPCS(pcs);
-                        addOrChangeMeatForPCS(pcs);
-                        addOrChangeCheeseForPCS(pcs);
-                        addOrChangeRegToppingForPCS(pcs);
-                        addOrChangeSauceForPCS(pcs);
+                    changeBreadForPCS(pcs);
+                    addOrChangeMeatForPCS(pcs);
+                    addOrChangeCheeseForPCS(pcs);
+                    addOrChangeRegToppingForPCS(pcs);
+                    addOrChangeSauceForPCS(pcs);
 
 
                     int wantToasted = console.promptForInt("This sandwich comes Toasted...Do you want to remove this?. (1 - Yes, 2 - No): ");
@@ -587,7 +588,7 @@ public class UserInterface {
                 addMeat = console.getBoolean("Do you want to add more meat?");
             }
         } else {
-         //Choice 2: Not Replacing
+            //Choice 2: Not Replacing
             while (addMeat) {
                 if (console.getBoolean("Do you want to add a different meat?: ")) {
                     int numbering3 = 1;
@@ -1440,10 +1441,10 @@ public class UserInterface {
                         System.out.println(ColorCodes.RED + "Not a valid size" + ColorCodes.RESET + ColorCodes.FLORAL_WHITE);
                     }
                 }
-                    addDrink = false;
-                    System.out.println(ColorCodes.BOLD + "\n" + drink.getName() + " " + drink + " "  +  "\n" + ColorCodes.RESET + ColorCodes.FLORAL_WHITE);
+                addDrink = false;
+                System.out.println(ColorCodes.BOLD + "\n" + drink.getName() + " " + drink + " "  +  "\n" + ColorCodes.RESET + ColorCodes.FLORAL_WHITE);
 
-                    order.addItem(drink);
+                order.addItem(drink);
             }
 
         }
@@ -1495,6 +1496,32 @@ public class UserInterface {
     }
 
 
+
+    // Allows user to input and apply a discount coupon code
+    private void applyCoupon() {
+        while (true) {
+            String code = console.promptForString("Enter coupon code (or press Enter to skip): ");
+            if (code.isBlank()) {
+                System.out.println("No coupon applied.\n");
+                break;
+            }
+
+            if (Coupon.isCouponValid(code)) {
+                try {
+                    Coupon coupon = new Coupon(code);
+                    order.setCoupon(coupon);
+                    System.out.printf("Coupon '%s' applied (%.0f%% off).\n\n", code.toUpperCase(), coupon.getDiscountPercentage() * 100);
+                    break;
+                } catch (Exception e) {
+                    System.out.println(e.getMessage() + "\n");
+                }
+            } else {
+                System.out.println(ColorCodes.RED + "Invalid or already-used coupon code. Try again.\n" + ColorCodes.RESET);
+            }
+        }
+    }
+
+
     //Check Out
     public void checkOut() {
 
@@ -1506,9 +1533,11 @@ public class UserInterface {
                 System.out.println("\n" + ColorCodes.BOLD + menuItem.description() + ColorCodes.RESET + ColorCodes.FLORAL_WHITE + "\n");
             }
 
+//
+//            //Out prints the total price
 
-            //Out prints the total price
-           System.out.printf(ColorCodes.BOLD + "\n The total price is %.2f\n" + ColorCodes.RESET + ColorCodes.FLORAL_WHITE , order.getTotal());
+            System.out.println(order.toString());
+//           System.out.printf(ColorCodes.BOLD + "\n The total price is %.2f\n" + ColorCodes.RESET + ColorCodes.FLORAL_WHITE , order.getTotal());
 
         }
 

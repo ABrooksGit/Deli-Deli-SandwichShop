@@ -44,8 +44,19 @@ public class FileManager {
 
                 for(MenuItem item : order.getMenuItems()){
                     bw.write("\n" + item.description());
+                    bw.write("\n");
                 }
-                bw.write(String.format("\nTOTAL: $%.2f\n", order.getTotal()));
+                double originalTotal = order.getTotal();
+                double discountedTotal = originalTotal;
+                if(order.getCoupon() != null){
+                    discountedTotal = order.getCoupon().applyDiscount(originalTotal);
+                }
+
+                bw.write(String.format("\nORIGINAL TOTAL: $%.2f\n", order.getTotal()));
+                if(order.getCoupon() != null){
+                    bw.write(String.format("Discounted Total: $%.2f\n", discountedTotal));
+                    bw.write("COUPON APPLIED: " + order.getCoupon().getCode() + "\n");;
+                }
 
 
 
